@@ -1,15 +1,7 @@
 import QRCode from "react-qr-code";
-import { Card, CardContent, CardFooter } from "./ui/card";
+import { Card, CardContent } from "./ui/card";
 import { Progress } from "./ui/progress";
-import {
-  CheckIcon,
-  CopyIcon,
-  DatabaseIcon,
-  RefreshCw,
-  Timer,
-} from "lucide-react";
-import { Item, ItemContent } from "./ui/item";
-import { Input } from "./ui/input";
+import { CheckIcon, CopyIcon, RefreshCw, Timer } from "lucide-react";
 import {
   InputGroup,
   InputGroupAddon,
@@ -42,17 +34,16 @@ export const QRCard = ({
         <div className="p-10 flex flex-col items-center text-center">
           <div className="mb-8">
             <h2 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-              Scan QR Code Barcode
+              Scan QR Barcode
             </h2>
           </div>
 
           <div className="relative group">
-            <div className="absolute -inset-1 bg-linear-to-r from-blue-600 to-indigo-600 rounded-3xl blur opacity-20 group-hover:opacity-45 transition duration-1000" />
             <div
               className={`
                   relative p-6 bg-white dark:bg-slate-900 rounded-2xl border-2 transition-all duration-700
                   ${isRefreshing ? "opacity-30 scale-90 blur-md translate-y-2" : "opacity-100 scale-100 translate-y-0"}
-                  ${timeLeft < 10 ? "border-rose-100 shadow-rose-100" : "border-slate-50 shadow-sm shadow-slate-200/40"}
+                  ${timeLeft < 10 ? "border-rose-100 shadow-rose-100" : "border-slate-50 shadow-lg "}
                 `}
             >
               <div className="bg-white p-2 rounded-xl">
@@ -75,6 +66,7 @@ export const QRCard = ({
           <div className="w-full max-w-[20rem] mt-5">
             <InputGroup>
               <InputGroupInput
+                name="qrCodeValue"
                 placeholder="QR Code"
                 value={qrValue}
                 disabled

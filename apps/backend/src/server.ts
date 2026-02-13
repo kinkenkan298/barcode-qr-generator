@@ -9,6 +9,7 @@ import {
 } from "@/logger";
 import { connectDB } from "@/db";
 import helmet from "helmet";
+import { rateLimitter } from "./middleware/rate-limitter";
 
 const app: Express = express();
 
@@ -21,6 +22,7 @@ app.use(
   }),
 );
 app.use(helmet());
+app.use(rateLimitter);
 
 app.use([httpLogger, addRequestId, logBodyRequests, logQueryParams]);
 
