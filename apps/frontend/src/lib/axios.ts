@@ -6,3 +6,14 @@ export const axiosInstance = axios.create({
     "Content-Type": "application/json",
   },
 });
+
+export class ApiError extends Error {
+  status?: number;
+  retryAfterSeconds?: number;
+
+  constructor(message: string, status?: number, retryAfterSeconds?: number) {
+    super(message);
+    this.status = status;
+    this.retryAfterSeconds = retryAfterSeconds;
+  }
+}

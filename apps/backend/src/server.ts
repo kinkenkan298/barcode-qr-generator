@@ -23,7 +23,7 @@ app.use(
   }),
 );
 app.use(helmet());
-app.use(rateLimitter);
+// app.use(rateLimitter);
 
 app.use([httpLogger, addRequestId, logBodyRequests, logQueryParams]);
 

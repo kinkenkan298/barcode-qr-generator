@@ -1,6 +1,7 @@
 import { getTimeQueryKey, useGetTime } from "@/api/get-time";
 import { QRCard } from "@/components/QRCard";
 import { queryClient } from "@/lib/query-client";
+import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -9,12 +10,14 @@ export const Route = createFileRoute("/")({ component: App });
 
 function App() {
   const [timeLeft, setTimeLeft] = useState(60);
+  const qc = useQueryClient();
 
   const {
     data: time,
-    isError,
     refetch: refetchTime,
     isFetching,
+    error,
+    isError,
   } = useGetTime({
     queryConfig: {
       staleTime: 0,
@@ -28,17 +31,18 @@ function App() {
   }, [time?.data?.expiresInSeconds]);
 
   useEffect(() => {
-    if (timeLeft <= 1) {
-      refetchTime().then(() => {
-        queryClient.invalidateQueries({
-          queryKey: getTimeQueryKey(),
-        });
-      });
-      setTimeLeft(60);
-      return;
-    }
     const timer = setInterval(() => {
-      setTimeLeft((prevTimeLeft) => prevTimeLeft - 1);
+      setTimeLeft((prevTimeLeft) => {
+        if (prevTimeLeft <= 1) {
+          refetchTime().then(() => {
+            qc.invalidateQueries({
+              queryKey: getTimeQueryKey(),
+            });
+          });
+          return 60;
+        }
+        return prevTimeLeft - 1;
+      });
     }, 1000);
 
     return () => clearInterval(timer);
@@ -50,6 +54,14 @@ function App() {
   );
 
   const progressPercent = (timeLeft / 60) * 100;
+  const refreshNow = async () => {
+    if (!isFetching && !isError) {
+      await refetchTime();
+      await queryClient.invalidateQueries({
+        queryKey: getTimeQueryKey(),
+      });
+    }
+  };
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center p-6 font-sans">
       <div className="max-w-md w-full space-y-6">
@@ -60,12 +72,7 @@ function App() {
         <QRCard
           timeLeft={timeLeft}
           progressPercent={progressPercent}
-          onGenerateQR={async () => {
-            await refetchTime();
-            await queryClient.invalidateQueries({
-              queryKey: getTimeQueryKey(),
-            });
-          }}
+          onGenerateQR={refreshNow}
           isRefreshing={isFetching}
           qrValue={qrValue}
         />

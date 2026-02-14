@@ -2,8 +2,8 @@ import { errorResponse } from "@/utils/api-response";
 import type { Request, Response } from "express";
 import rateLimit, { ipKeyGenerator } from "express-rate-limit";
 
-const LIMIT_MAX_REQUESTS = 3;
-const LIMIT_WINDOW_MS = 1 * 60 * 1000;
+const LIMIT_MAX_REQUESTS = 5;
+const LIMIT_WINDOW_MS = 30 * 1000;
 
 export const rateLimitter = rateLimit({
   legacyHeaders: true,
