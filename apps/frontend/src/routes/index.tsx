@@ -1,41 +1,53 @@
+import { getTimeQueryKey, useGetTime } from "@/api/get-time";
 import { QRCard } from "@/components/QRCard";
+import { queryClient } from "@/lib/query-client";
 import { createFileRoute } from "@tanstack/react-router";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/")({ component: App });
 
 function App() {
-  const [qrValue, setQrValue] = useState("");
   const [timeLeft, setTimeLeft] = useState(60);
-  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const generateNewToken = useCallback(() => {
-    setIsRefreshing(true);
-    const newToken = `AUTH-${Math.random().toString(36)?.substr(2, 9).toUpperCase()}-${Date.now()}`;
+  const {
+    data: time,
+    isError,
+    refetch: refetchTime,
+    isFetching,
+  } = useGetTime({
+    queryConfig: {
+      staleTime: 0,
+    },
+  });
 
-    setTimeout(() => {
-      setQrValue(newToken);
+  useEffect(() => {
+    if (time?.data.expiresInSeconds != null) {
+      setTimeLeft(time?.data.expiresInSeconds);
+    }
+  }, [time?.data?.expiresInSeconds]);
+
+  useEffect(() => {
+    if (timeLeft <= 1) {
+      refetchTime().then(() => {
+        queryClient.invalidateQueries({
+          queryKey: getTimeQueryKey(),
+        });
+      });
       setTimeLeft(60);
-      setIsRefreshing(false);
-    }, 600);
-  }, []);
-
-  useEffect(() => {
-    generateNewToken();
-  }, [generateNewToken]);
-
-  useEffect(() => {
-    if (timeLeft <= 0) {
-      generateNewToken();
       return;
     }
-
     const timer = setInterval(() => {
-      setTimeLeft((prev) => prev - 1);
+      setTimeLeft((prevTimeLeft) => prevTimeLeft - 1);
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [timeLeft, generateNewToken]);
+  }, [timeLeft]);
+
+  const qrValue = useMemo(
+    () => time?.data.payload.datetime ?? "payload",
+    [time],
+  );
 
   const progressPercent = (timeLeft / 60) * 100;
   return (
@@ -48,8 +60,13 @@ function App() {
         <QRCard
           timeLeft={timeLeft}
           progressPercent={progressPercent}
-          onGenerateQR={generateNewToken}
-          isRefreshing={isRefreshing}
+          onGenerateQR={async () => {
+            await refetchTime();
+            await queryClient.invalidateQueries({
+              queryKey: getTimeQueryKey(),
+            });
+          }}
+          isRefreshing={isFetching}
           qrValue={qrValue}
         />
       </div>
