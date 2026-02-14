@@ -12,6 +12,6 @@ export interface APIResponse<T = unknown> {
   message?: string;
   errors?: string[];
   data: T;
-  statusCode: number;
+  statusCode?: number;
   type?: MessageType;
 }

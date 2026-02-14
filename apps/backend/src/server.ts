@@ -10,6 +10,7 @@ import {
 import { connectDB } from "@/db";
 import helmet from "helmet";
 import { rateLimitter } from "./middleware/rate-limitter";
+import { qrRoutes } from "./routes/qrcode.routes";
 
 const app: Express = express();
 
@@ -36,6 +37,8 @@ app.get("/health", (req, res) => {
     message: "Backend is healthy",
   });
 });
+
+app.use("/v1/qr", qrRoutes);
 
 app.get("/", (req, res) => {
   res.send("Hallo backend!");
